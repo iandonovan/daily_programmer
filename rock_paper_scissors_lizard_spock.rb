@@ -1,19 +1,21 @@
 class RPSLS
 
   WHAT_BEATS_WHAT = { rock: {lizard: 'crushes', scissors: 'crushes'},
-                                      paper: {rock: 'covers', spock: 'disproves'},
-                                      scissors: {paper: 'cuts', lizard: 'decapitates'},
-                                      lizard: {spock: 'poisons', paper: 'eats'},
-                                      spock: {scissors: 'smashes', rock: 'vaporizes'}
-                                    }
+                      paper: {rock: 'covers', spock: 'disproves'},
+                      scissors: {paper: 'cuts', lizard: 'decapitates'},
+                      lizard: {spock: 'poisons', paper: 'eats'},
+                      spock: {scissors: 'smashes', rock: 'vaporizes'}
+                    }
 
-  def initialize
+  def initialize(smart)
     @user_wins = 0
     @computer_wins = 0
     @tie_count = 0
+    @smart = smart
   end
 
   def play
+    initialize_memory_hash if @smart
     user_input = get_and_clean_input
     if WHAT_BEATS_WHAT[user_input]
       computer_selection = get_computer_selection
@@ -22,6 +24,7 @@ class RPSLS
         puts 'Tie!'
       else
         determine_winner(user_input, computer_selection)
+        save_user_input(user_input) if @smart
       end
     else
       puts 'Invalid input!'
@@ -30,16 +33,31 @@ class RPSLS
 
   private
 
+  def initialize_memory_hash
+    @MEMORY_HASH ||= Hash[WHAT_BEATS_WHAT.keys.map { |k| [k, 0] }]
+  end
+
   def get_and_clean_input
     puts "What's your choice? Rock, Paper, Scissors, Lizard, or Spock? Type 'quit' to quit."
     user_input = gets.chomp
-    user_input == 'quit' ? finish_loop : (user_input = user_input.downcase.to_sym)
+    user_input == 'quit' ? print_stats : (user_input = user_input.downcase.to_sym)
   end
 
   def get_computer_selection
-    computer_selection = WHAT_BEATS_WHAT.keys.sample(1).first
+    computer_selection = @smart ? smart_computer_selection : random_computer_selection
     puts "Computer chooses #{ computer_selection.to_s.capitalize }"
     computer_selection
+  end
+
+  def smart_computer_selection
+    return random_computer_selection if @MEMORY_HASH.values.max == 0 # First one, ignore
+    most_picked = @MEMORY_HASH.max_by{ |k,v| v }.first
+    counters = WHAT_BEATS_WHAT.select { |k,v| v[most_picked] != nil }.keys
+    counters.sample(1).first
+  end
+
+  def random_computer_selection
+    WHAT_BEATS_WHAT.keys.sample(1).first
   end
 
   def determine_winner(user, computer)
@@ -54,11 +72,21 @@ class RPSLS
     end
   end
 
-  def finish_loop
-    abort "Games over.\n You won #{ @user_wins } times and the computer won #{ @computer_wins } times. There were #{ @tie_count } ties."
+  def save_user_input(user_input)
+    @MEMORY_HASH[user_input] += 1
+  end
+
+  def print_stats
+    puts "Games finished."
+    puts "Player victories: #{ @user_wins }"
+    puts "Computer victories: #{ @computer_wins }"
+    puts "Ties: #{ @tie_count }"
+    abort "You won #{ 100*(@user_wins.to_f / (@user_wins + @computer_wins + @tie_count).to_f).round(3) }% of #{ @user_wins + @computer_wins + @tie_count } games"
   end
 
 end
 
-game = RPSLS.new
+puts "Do you want to play with the smarter AI? y/n"
+smart = gets.chomp == 'y'
+game = RPSLS.new(smart)
 game.play while true
