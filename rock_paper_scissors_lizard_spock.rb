@@ -15,7 +15,7 @@ class RPSLS
   end
 
   def play
-    initialize_memory_hash if @smart
+    initialize_ai_memory if @smart
     user_input = get_and_clean_input
     if WHAT_BEATS_WHAT[user_input]
       computer_selection = get_computer_selection
@@ -24,8 +24,8 @@ class RPSLS
         puts 'Tie!'
       else
         determine_winner(user_input, computer_selection)
-        save_user_input(user_input) if @smart
       end
+      save_user_input(user_input) if @smart
     else
       puts 'Invalid input!'
     end
@@ -33,8 +33,9 @@ class RPSLS
 
   private
 
-  def initialize_memory_hash
-    @MEMORY_HASH ||= Hash[WHAT_BEATS_WHAT.keys.map { |k| [k, 0] }]
+  def initialize_ai_memory
+    @USER_PICK_MEMORY ||= Hash[WHAT_BEATS_WHAT.keys.map { |k| [k, 0] }]
+    @TOP_PICKS ||= []
   end
 
   def get_and_clean_input
@@ -50,14 +51,34 @@ class RPSLS
   end
 
   def smart_computer_selection
-    return random_computer_selection if @MEMORY_HASH.values.max == 0 # First one, ignore
-    most_picked = @MEMORY_HASH.max_by{ |k,v| v }.first
-    counters = WHAT_BEATS_WHAT.select { |k,v| v[most_picked] != nil }.keys
-    counters.sample(1).first
+    # Only start the guesswork after we collect some data
+    if @USER_PICK_MEMORY.values.inject(0, :+) > 3
+      most_picked = @USER_PICK_MEMORY.select{ |k,v| v == @USER_PICK_MEMORY.values.max }.keys
+      @TOP_PICKS = store_top_pick(most_picked)
+      counters = get_counter_moves(most_picked)
+      counters.empty? ? random_computer_selection : counters.sample(1).first
+    else
+      random_computer_selection
+    end
   end
 
   def random_computer_selection
     WHAT_BEATS_WHAT.keys.sample(1).first
+  end
+
+  def save_user_input(user_input)
+    @USER_PICK_MEMORY[user_input] += 1
+  end
+
+  def store_top_pick(pick)
+    @TOP_PICKS += pick
+    @TOP_PICKS.uniq
+  end
+
+  def get_counter_moves(pick)
+    counters = []
+    pick.each { |p| counters += WHAT_BEATS_WHAT.select { |k,v| v[p] != nil }.keys }
+    counters - @TOP_PICKS
   end
 
   def determine_winner(user, computer)
@@ -70,10 +91,6 @@ class RPSLS
       puts "Computer wins!\n-----"
       @computer_wins += 1
     end
-  end
-
-  def save_user_input(user_input)
-    @MEMORY_HASH[user_input] += 1
   end
 
   def print_stats
