@@ -5,7 +5,7 @@ from itertools import zip_longest
 
 class BlackjackStats:
 
-    STANDARD_DECK = (list(range(2, 11)) + [11, 10, 10, 10]) * 4 # 2-10, Ace, Jack, Queen, King
+    STANDARD_DECK = (list(range(2, 11)) + [10, 10, 10, 11]) * 4 # 2-10, Jack, Queen, King, Ace; 4 suits.
 
     def __init__(self, number_of_decks):
         self.cards = self.STANDARD_DECK * number_of_decks
@@ -17,6 +17,8 @@ class BlackjackStats:
             if c1 + c2 == 21:
                 self.blackjack_count += 1
 
+    # From http://stackoverflow.com/questions/5850536/how-to-chunk-a-list-in-python-3
+    # A Python version of Ruby's each_slice method, effectively chunking the list into pairs.
     def grouper(self, group_size, iterable, pad_value=None):
         args = [iter(iterable)] * group_size
         return zip_longest(*args, fillvalue=pad_value)
