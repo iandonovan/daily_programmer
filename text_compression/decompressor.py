@@ -35,7 +35,7 @@ class Decompressor():
             delimiter = next_delimiter # Between this and the next word
             next_delimiter = ' ' # Default it to space unless - or .,?!;: change it
 
-path_to_file = input("What is the path to the file? -->")
+path_to_file = input("What is the path to the file we'll decompress? --> ")
 decompressor = Decompressor(path_to_file)
 decompressor.decompress()
 print(decompressor.output)
