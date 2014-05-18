@@ -1,31 +1,45 @@
-# import pdb; pdb.set_trace()
 import re
+class Compressor():
 
-whole_shebang = open('easy_input_for_compress.txt', 'r').read()
-words, code = [], []
-for word in re.split(r'(\W)', whole_shebang):
-    if word == ' ' or word == '':
-        pass
-    elif word in '.,?!;:':
-        code.append(word)
-    elif word == "\n":
-        code.append('R')
-    elif word.isalpha():
-        if word.lower() not in words:
-            words.append(word.lower())
-        index = str(words.index(word.lower()))
+    def __init__(self, path_to_file):
+        self.raw_data = open(path_to_file, 'r').read()
+        self.words, self.code = [], []
+
+    def compress(self):
+        for word in re.split(r'(\W)', self.raw_data):
+            if word == ' ' or word == '': # Pass on space and ''
+                pass
+            elif word in '.,?!;:':
+                self.code.append(word)
+            elif word == "\n":
+                self.code.append('R')
+            elif word.isalpha():
+                self.handle_alphabetical(word)
+            else:
+                raise Exception("Follow da Rules!")
+        self.code.append('E')
+
+    def handle_alphabetical(self, word):
+        if word.lower() not in self.words:
+            self.words.append(word.lower())
+        index = str(self.words.index(word.lower()))
         if word.islower():
-            code.append(index)
+            self.code.append(index)
         elif word.istitle():
-            code.append(index + '^')
+            self.code.append(index + '^')
         elif word.isupper():
-            code.append(index + '!')
+            self.code.append(index + '!')
         else:
-            raise Exception("Not compressible:", word)
-    else:
-        raise Exception("Follow da Rules!")
-code.append('E')
-print(len(words))
-for word in words:
-    print(word)
-print(' '.join(code))
+            raise Exception("Somehow this alphabetical string is not compressible:", word)
+
+    def print_output(self):
+        print(len(self.words))
+        for word in self.words:
+            print(word)
+        print(' '.join(self.code))
+
+path_to_file = input("What is the path the file we'll compress? --> ")
+compressor = Compressor(path_to_file)
+compressor.compress()
+compressor.print_output()
+
