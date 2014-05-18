@@ -13,7 +13,6 @@ class Decompressor():
             self.data = f.readline().strip().split(' ')
 
     def decompress(self):
-        # import pdb; pdb.set_trace()
         delimiter = ''
         next_delimiter = ' '
         for d in self.data:
