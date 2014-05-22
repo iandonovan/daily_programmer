@@ -19,7 +19,7 @@ class HackingMinigame:
                 word = line.strip()
                 if len(word) == word_length:
                     word_dict.append(word.lower())
-            return word_dict
+        return word_dict
 
     def play(self):
         self.print_info()
